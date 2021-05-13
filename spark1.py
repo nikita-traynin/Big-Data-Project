@@ -1,27 +1,14 @@
 #!/usr/bin/python3
-
 from pyspark import SparkConf, SparkContext
 from pyspark.streaming import StreamingContext
 from geopy.geocoders import Nominatim
 from textblob import TextBlob
 from elasticsearch import Elasticsearch
-
-'''
 import re
-from bs4 import BeautifulSoup
-from nltk.tokenize import WordPunctTokenizer
-import json
-import pickle
-'''
 
 TCP_IP = 'localhost'
 TCP_PORT = 9001
 
-##########
-#start geolocator
-#geolocator = Nominatim(user_agent="BigData_Uche")
-######### Line above is meant to be include but it breaks the pipe on my system 
-######### if it works for anyone of you the part in "" is your app name
 
 def processTweet(tweet):    
     #connect to elastic
@@ -42,7 +29,8 @@ def processTweet(tweet):
         else:
             sentiment = "Neutral"
 # (ii) Get geolocation (state, country, lat, lon, etc...) from rawLocation
-
+        #start geolocator 
+        geolocator = Nominatim(user_agent="BigData_Uche")
         try:
             location = geolocator.geocode(tweetData[0],addressdetails = True)
             lat = location.raw['lat']
@@ -52,28 +40,21 @@ def processTweet(tweet):
            
         except:
             lat = lon = state = country = None
-
-
-
-        print("\n\n=========================\ntweet: ", tweet)
+        
+        print("\n\n=========================\n")
         print("Raw location from tweet status: ", rawLocation)
         print("lat: ", lat)
         print("lon: ", lon)
         print("state: ", state)
         print("country: ", country)
-        print("Text: ", text)
         print("Sentiment: ", sentiment)
-
-
+        print("\n=========================\n\n")
 
         # (iii) Post the index on ElasticSearch or log your data in some other way (you are always free!!)
-       
-        if lat != None and lon != None and sentiment != None:
-            document = {"lat":lat,"lon": lon, "state":state, "country": country, "Sentiment" :sentiment}
-            es.index(index='tweet sentiment', doc_type = 'default', body = document)
-
-
-
+        if lat !=None and lon !=None and sentiment !=None:
+            doc = {"lat":lat,"lon":lon, "state":state, "country":country, "Sentiment":sentiment}
+            #indexing
+            es.index(index='tweet-sentiment', doc_type='default', body=doc)
 
 # Pyspark
 # create spark configuration
